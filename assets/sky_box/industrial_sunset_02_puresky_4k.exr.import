@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://hspj6vwaxtwt"
 path.bptc="res://.godot/imported/industrial_sunset_02_puresky_4k.exr-fdbaf08a3b431320ceb67f4217602d8c.bptc.ctex"
+path.astc="res://.godot/imported/industrial_sunset_02_puresky_4k.exr-fdbaf08a3b431320ceb67f4217602d8c.astc.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sky_box/industrial_sunset_02_puresky_4k.exr"
-dest_files=["res://.godot/imported/industrial_sunset_02_puresky_4k.exr-fdbaf08a3b431320ceb67f4217602d8c.bptc.ctex"]
+dest_files=["res://.godot/imported/industrial_sunset_02_puresky_4k.exr-fdbaf08a3b431320ceb67f4217602d8c.bptc.ctex", "res://.godot/imported/industrial_sunset_02_puresky_4k.exr-fdbaf08a3b431320ceb67f4217602d8c.astc.ctex"]
 
 [params]
 

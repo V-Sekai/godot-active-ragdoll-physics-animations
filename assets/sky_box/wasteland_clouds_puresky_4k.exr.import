@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://5yfk6t128lv2"
 path.bptc="res://.godot/imported/wasteland_clouds_puresky_4k.exr-644f10943f255737a400795a2745ed86.bptc.ctex"
+path.astc="res://.godot/imported/wasteland_clouds_puresky_4k.exr-644f10943f255737a400795a2745ed86.astc.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sky_box/wasteland_clouds_puresky_4k.exr"
-dest_files=["res://.godot/imported/wasteland_clouds_puresky_4k.exr-644f10943f255737a400795a2745ed86.bptc.ctex"]
+dest_files=["res://.godot/imported/wasteland_clouds_puresky_4k.exr-644f10943f255737a400795a2745ed86.bptc.ctex", "res://.godot/imported/wasteland_clouds_puresky_4k.exr-644f10943f255737a400795a2745ed86.astc.ctex"]
 
 [params]
 
