@@ -10,16 +10,16 @@ extends Skeleton3D
 @export var angular_spring_damping: float = 80.0
 @export var max_angular_force: float = 9999.0
 
-var physics_bones
+var physics_bones: Array[Node]
 
 
 # Called when the node enters the scene tree for the first time.
-func _ready():
+func _ready() -> void:
 	physical_bones_start_simulation()
 	physics_bones = get_children().filter(func(x): return x is PhysicalBone3D)
 
 
-func _physics_process(delta):
+func _physics_process(delta) -> void:
 	for b in physics_bones:
 		var target_transform: Transform3D = (
 			target_skeleton.global_transform * target_skeleton.get_bone_global_pose(b.get_bone_id())
@@ -38,7 +38,7 @@ func _physics_process(delta):
 			force = force.limit_length(max_linear_force)
 			b.linear_velocity += (force * delta)
 
-		var torque = hookes_law(
+		var torque: Vector3 = hookes_law(
 			rotation_difference.get_euler(), b.angular_velocity, angular_spring_stiffness, angular_spring_damping
 		)
 		torque = torque.limit_length(max_angular_force)

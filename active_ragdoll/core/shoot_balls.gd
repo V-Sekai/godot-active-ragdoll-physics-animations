@@ -3,7 +3,7 @@ extends Camera3D
 @export var bullet_scene: PackedScene
 
 
-func _process(delta):
+func _process(delta) -> void:
 	if Input.is_action_just_pressed("fire"):
 		var mouse_pos = get_viewport().get_mouse_position()
 		var ray_length = 100
