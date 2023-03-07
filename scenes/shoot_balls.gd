@@ -12,5 +12,5 @@ func _process(delta):
 		var bullet = bullet_scene.instantiate()
 		add_child(bullet)
 		bullet.look_at(to)
-		bullet.top_level = true;
+		bullet.top_level = true
 		bullet.fire(10)
