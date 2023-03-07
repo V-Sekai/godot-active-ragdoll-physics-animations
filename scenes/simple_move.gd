@@ -10,17 +10,21 @@ const JUMP_VELOCITY = 4.5
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 var mouse_position = Vector2.ZERO
 
+
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
 
 func _input(event):
 	if event is InputEventMouseMotion:
 		mouse_position = event.relative
 
+
 func _process(delta):
 	mouse_position *= sensitivity
 	var yaw = mouse_position.x
 	rotate_y(deg_to_rad(-yaw))
+
 
 func _physics_process(delta):
 	# Add the gravity.
@@ -41,7 +45,7 @@ func _physics_process(delta):
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
-		
+
 	var local_vel = transform.basis.inverse() * velocity
 	anim_tree.set("parameters/blend_position", Vector2(local_vel.x, -local_vel.z))
 

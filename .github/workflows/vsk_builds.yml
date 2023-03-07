@@ -8,6 +8,8 @@ env:
   SCONSFLAGS: verbose=yes warnings=extra werror=yes module_text_server_fb_enabled=yes
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
+  EM_VERSION: 3.1.18
+  EM_CACHE_FOLDER: "emsdk-cache"
 
 concurrency:
   group: ci-${{github.actor}}-${{github.head_ref || github.run_number}}-${{github.ref}}-deploy
@@ -64,6 +66,17 @@ jobs:
             artifact: true
             platform: windows
 
+          - name: Editor Linux (target=editor)
+            cache-name: linux-editor
+            target: editor
+            tests: false
+            sconsflags: use_llvm=yes custom_modules=../vsk_modules precision=double linker=gold deprecate=no
+            doc-test: false
+            bin: "./bin/godot.linuxbsd.editor.double.x86_64.llvm"
+            proj-conv: false
+            artifact: true
+            platform: linuxbsd
+
           # - name: Editor with doubles and GCC sanitizers (target=editor, tests=yes, dev_build=yes, precision=double, use_asan=yes, use_ubsan=yes, linker=gold)
           #   cache-name: linux-editor-double-sanitizers
           #   target: editor
@@ -90,13 +103,13 @@ jobs:
           #   artifact: false
           #   platform: linuxbsd
 
-          - name: Minimal template (target=template_release, everything disabled, linker=gold)
-            cache-name: linux-template-minimal
+          - name: Web Template (target=template_release)
+            cache-name: web-template
             target: template_release
             tests: false
-            sconsflags: modules_enabled_by_default=no disable_3d=yes disable_advanced_gui=yes deprecated=no minizip=no linker=gold
+            sconsflags: use_llvm=yes use_mingw=yes custom_modules=../vsk_modules precision=double deprecate=no
             artifact: true
-            platform: linuxbsd
+            platform: web
 
     steps:
       - uses: actions/checkout@v3
@@ -118,6 +131,18 @@ jobs:
         with:
           cache-name: ${{ matrix.cache-name }}
         continue-on-error: true
+
+      - name: Set up Emscripten latest
+        if: ${{ matrix.platform == 'web' }}
+        uses: mymindstorm/setup-emsdk@v11
+        with:
+          version: ${{env.EM_VERSION}}
+          actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
+
+      - name: Verify Emscripten setup
+        if: ${{ matrix.platform == 'web' }}
+        run: |
+          emcc -v
 
       - name: Setup python and scons
         uses: ./.github/actions/godot-deps
@@ -242,7 +267,144 @@ jobs:
         with:
           name: ${{ matrix.cache-name }}
 
-  # deploy-test-upload-linux:
+  deploy-packages-linux:
+    needs: [build-linux]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Download linux-editor artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: vsk_linux_builds.yml
+          workflow_conclusion: success
+          name: linux-editor
+
+      - name: Download linux-editor-shared-library artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: vsk_linux_builds.yml
+          workflow_conclusion: success
+          name: linux-editor-shared-library
+
+      - name: Export Linux v-sekai-game
+        run: |
+          mkdir -p .godot/editor .godot/imported export_linuxbsd
+          cp godot.linuxbsd.editor.double.x86_64.llvm active_ragdoll_linux.x86_64
+          chmod +x godot.linuxbsd.editor.double.x86_64.llvm
+          ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --export-pack Linux/X11  `pwd`/active_ragdoll_linux.x86_64.pck --path .
+          ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --dump-extension-api --dump-gdextension-interface
+
+      - name: Upload Godot Artifact Export Linux
+        uses: actions/upload-artifact@v3
+        with:
+          name: active_ragdoll_game_linux_x86_64
+          path: |
+            libgodot.linuxbsd.editor.double.x86_64.llvm.so
+            active_ragdoll_linux.x86_64
+            active_ragdoll_linux.x86_64.pck
+            extension_api.json
+            gdextension_interface.h
+          retention-days: 45
+
+      - name: Upload Godot Artifact Export JSON api
+        uses: actions/upload-artifact@v3
+        with:
+          name: v_sekai_gdextension_api
+          path: |
+            extension_api.json
+            gdextension_interface.h
+          retention-days: 45
+
+      - name: Prepare artifacts
+        run: |
+          export TARGET=active-ragdoll-linux-x86_64
+          mkdir $TARGET
+          cp libgodot.linuxbsd.editor.double.x86_64.llvm.so $TARGET/libgodot.linuxbsd.editor.double.x86_64.llvm.so
+          cp active_ragdoll_linux.x86_64 $TARGET/active_ragdoll_linux.x86_64
+          cp active_ragdoll_linux.x86_64.pck $TARGET/active_ragdoll_linux.x86_64.pck
+          cp extension_api.json $TARGET/extension_api.json
+          cp gdextension_interface.h $TARGET/gdextension_interface.h
+          7z a -r $TARGET.zip $TARGET
+        shell: bash
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: active-ragdoll-linux-x86_64.zip
+
+  deploy-packages-windows:
+    needs: [build-linux]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Download linux-editor artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: vsk_linux_builds.yml
+          workflow_conclusion: success
+          name: linux-editor
+
+      - name: Download windows-editor artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: vsk_linux_builds.yml
+          workflow_conclusion: success
+          name: windows-editor
+
+      - name: Download windows-editor-shared-library artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: vsk_linux_builds.yml
+          workflow_conclusion: success
+          name: windows-editor-shared-library
+
+      - name: Export Windows active-ragdoll
+        run: |
+          mkdir -p .godot/editor .godot/imported export_windows
+          cp godot.windows.editor.double.x86_64.llvm.exe active_ragdoll_windows_x86_64.exe
+          cp libgodot.windows.editor.double.x86_64.llvm.so libgodot.windows.editor.double.x86_64.llvm.dll
+          chmod +x godot.linuxbsd.editor.double.x86_64.llvm
+          ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --export-pack Windows\ Desktop `pwd`/active_ragdoll_windows_x86_64.pck --path .
+          ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --dump-extension-api --dump-gdextension-interface
+
+      - name: Upload Godot Artifact Export Windows
+        uses: actions/upload-artifact@v3
+        with:
+          name: active_ragdoll_game_windows_x86_64
+          path: |
+            libgodot.windows.editor.double.x86_64.llvm.dll
+            active_ragdoll_windows_x86_64.exe
+            active_ragdoll_windows_x86_64.pck
+            extension_api.json
+            gdextension_interface.h
+          retention-days: 45
+
+      - name: Prepare artifacts
+        run: |
+          export TARGET=active-ragdoll-windows-x86_64
+          mkdir $TARGET
+          cp libgodot.windows.editor.double.x86_64.llvm.dll $TARGET/libgodot.windows.editor.double.x86_64.llvm.dll
+          cp active_ragdoll_windows_x86_64.exe $TARGET/active_ragdoll_windows_x86_64.exe
+          cp active_ragdoll_windows_x86_64.pck $TARGET/active_ragdoll_windows_x86_64.pck
+          cp extension_api.json $TARGET/extension_api.json
+          cp gdextension_interface.h $TARGET/gdextension_interface.h
+          7z a -r $TARGET.zip $TARGET
+        shell: bash
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: active-ragdoll-windows-x86_64.zip
+
+  # deploy-packages-web:
   #   needs: [build-linux]
   #   runs-on: ubuntu-20.04
   #   steps:
@@ -253,134 +415,42 @@ jobs:
   #     - name: Download linux-editor artifact
   #       uses: dawidd6/action-download-artifact@v2
   #       with:
-  #         workflow: vsk_linux_builds.yml
+  #         workflow: vsk_builds.yml
   #         workflow_conclusion: success
   #         name: linux-editor
 
-  #     - name: Generate build constants
-  #       uses: ./.github/actions/vsk-generate-constants
+  #     - name: Download web-template artifact
+  #       uses: dawidd6/action-download-artifact@v2
+  #       with:
+  #         workflow: vsk_builds.yml
+  #         workflow_conclusion: success
+  #         name: web-template
 
-  #     - name: Export Linux v-sekai-game
+  #     - name: Export Web Active Ragdoll
   #       run: |
-  #         mkdir -p .godot/editor .godot/imported export_linuxbsd
-  #         cp godot.linuxbsd.editor.double.x86_64.llvm active_ragdoll_linux.x86_64
+  #         mkdir -p .godot/editor .godot/imported
   #         chmod +x godot.linuxbsd.editor.double.x86_64.llvm
-  #         ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --export-pack Linux/X11  `pwd`/active_ragdoll_linux.x86_64.pck --path .
+  #         ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --export-pack Web `pwd`/.web_zip/index.pck --path .
 
-  #     - name: Test Linux v-sekai-game
+  #     - name: Upload Godot Artifact Export Web
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: active_ragdoll_game_web_wasm
+  #         path: |
+  #           .web_zip
+  #         retention-days: 45
+
+  #     - name: Prepare artifacts
   #       run: |
-  #         ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off -s res://addons/gut/gut_cmdln.gd -gexit -d --xr-mode off
+  #         export TARGET=active-ragdoll-web-wasm
+  #         mkdir $TARGET
+  #         mv .web_zip/godot.html .web_zip/index.html
+  #         cp .web_zip/* $TARGET/
+  #         7z a -r $TARGET.zip $TARGET
+  #       shell: bash
 
-  #     - name: Upload Godot Artifact Export Linux
-  #       uses: actions/upload-artifact@v3
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v1
+  #       if: startsWith(github.ref, 'refs/tags/')
   #       with:
-  #         name: linux-test-junit
-  #         path: |
-  #           *.xml
-  #         retention-days: 45
-
-  # deploy-packages-linux:
-  #   needs: [build-linux]
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         submodules: recursive
-
-  #     - name: Download linux-editor artifact
-  #       uses: dawidd6/action-download-artifact@v2
-  #       with:
-  #         workflow: vsk_linux_builds.yml
-  #         workflow_conclusion: success
-  #         name: linux-editor
-
-  #     - name: Download linux-editor-shared-library artifact
-  #       uses: dawidd6/action-download-artifact@v2
-  #       with:
-  #         workflow: vsk_linux_builds.yml
-  #         workflow_conclusion: success
-  #         name: linux-editor-shared-library
-
-  #     - name: Generate build constants
-  #       uses: ./.github/actions/vsk-generate-constants
-
-  #     - name: Export Linux v-sekai-game
-  #       run: |
-  #         mkdir -p .godot/editor .godot/imported export_linuxbsd
-  #         cp godot.linuxbsd.editor.double.x86_64.llvm active_ragdoll_linux.x86_64
-  #         chmod +x godot.linuxbsd.editor.double.x86_64.llvm
-  #         ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --export-pack Linux/X11  `pwd`/active_ragdoll_linux.x86_64.pck --path .
-  #         ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --dump-extension-api --dump-gdextension-interface
-
-  #     - name: Upload Godot Artifact Export Linux
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: active_ragdoll_game_linux_x86_64
-  #         path: |
-  #           libgodot.linuxbsd.editor.double.x86_64.llvm.so
-  #           active_ragdoll_linux.x86_64
-  #           active_ragdoll_linux.x86_64.pck
-  #           .itch.toml
-  #           extension_api.json
-  #           gdextension_interface.h
-  #         retention-days: 45
-
-  #     - name: Upload Godot Artifact Export JSON api
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: v_sekai_gdextension_api
-  #         path: |
-  #           extension_api.json
-  #           gdextension_interface.h
-  #         retention-days: 45
-
-  # deploy-packages-windows:
-  #   needs: [build-linux]
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         submodules: recursive
-
-  #     - name: Download linux-editor artifact
-  #       uses: dawidd6/action-download-artifact@v2
-  #       with:
-  #         workflow: vsk_linux_builds.yml
-  #         workflow_conclusion: success
-  #         name: linux-editor
-
-  #     - name: Download windows-editor artifact
-  #       uses: dawidd6/action-download-artifact@v2
-  #       with:
-  #         workflow: vsk_linux_builds.yml
-  #         workflow_conclusion: success
-  #         name: windows-editor
-
-  #     - name: Download windows-editor-shared-library artifact
-  #       uses: dawidd6/action-download-artifact@v2
-  #       with:
-  #         workflow: vsk_linux_builds.yml
-  #         workflow_conclusion: success
-  #         name: windows-editor-shared-library
-
-  #     - name: Export Windows active-ragdoll
-  #       run: |
-  #         mkdir -p .godot/editor .godot/imported export_windows
-  #         cp godot.windows.editor.double.x86_64.llvm.exe active_ragdoll_windows_x86_64.exe
-  #         cp libgodot.windows.editor.double.x86_64.llvm.so libgodot.windows.editor.double.x86_64.llvm.dll
-  #         chmod +x godot.linuxbsd.editor.double.x86_64.llvm
-  #         ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --export-pack Windows\ Desktop `pwd`/active_ragdoll_windows_x86_64.pck --path .
-  #         ./godot.linuxbsd.editor.double.x86_64.llvm --headless --xr-mode off --dump-extension-api --dump-gdextension-interface
-
-  #     - name: Upload Godot Artifact Export Windows
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: active_ragdoll_game_windows_x86_64
-  #         path: |
-  #           libgodot.windows.editor.double.x86_64.llvm.dll
-  #           active_ragdoll_windows_x86_64.exe
-  #           active_ragdoll_windows_x86_64.pck
-  #           .itch.toml
-  #           extension_api.json
-  #           gdextension_interface.h
-  #         retention-days: 45
+  #         files: active-ragdoll-web-wasm.zip
