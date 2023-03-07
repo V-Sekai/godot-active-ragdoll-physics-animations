@@ -17,9 +17,6 @@ func _ready():
 	physical_bones_start_simulation()
 	physics_bones = get_children().filter(func(x): return x is PhysicalBone3D)
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
 
 func _physics_process(delta):
 	for b in physics_bones:
