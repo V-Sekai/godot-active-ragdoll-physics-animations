@@ -267,14 +267,14 @@ jobs:
       - name: Download linux-editor artifact
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: vsk_linux_builds.yml
+          workflow: vsk_builds.yml
           workflow_conclusion: success
           name: linux-editor
 
       - name: Download linux-editor-shared-library artifact
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: vsk_linux_builds.yml
+          workflow: vsk_builds.yml
           workflow_conclusion: success
           name: linux-editor-shared-library
 
@@ -336,21 +336,21 @@ jobs:
       - name: Download linux-editor artifact
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: vsk_linux_builds.yml
+          workflow: vsk_builds.yml
           workflow_conclusion: success
           name: linux-editor
 
       - name: Download windows-editor artifact
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: vsk_linux_builds.yml
+          workflow: vsk_builds.yml
           workflow_conclusion: success
           name: windows-editor
 
       - name: Download windows-editor-shared-library artifact
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: vsk_linux_builds.yml
+          workflow: vsk_builds.yml
           workflow_conclusion: success
           name: windows-editor-shared-library
 
