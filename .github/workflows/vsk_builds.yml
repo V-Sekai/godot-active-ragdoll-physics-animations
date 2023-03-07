@@ -66,17 +66,6 @@ jobs:
             artifact: true
             platform: windows
 
-          - name: Editor Linux (target=editor)
-            cache-name: linux-editor
-            target: editor
-            tests: false
-            sconsflags: use_llvm=yes custom_modules=../vsk_modules precision=double linker=gold deprecate=no
-            doc-test: false
-            bin: "./bin/godot.linuxbsd.editor.double.x86_64.llvm"
-            proj-conv: false
-            artifact: true
-            platform: linuxbsd
-
           # - name: Editor with doubles and GCC sanitizers (target=editor, tests=yes, dev_build=yes, precision=double, use_asan=yes, use_ubsan=yes, linker=gold)
           #   cache-name: linux-editor-double-sanitizers
           #   target: editor
