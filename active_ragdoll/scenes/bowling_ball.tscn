@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://active_ragdoll/scenes/bowling_ball.gd" id="1_2cdm3"]
+[ext_resource type="Script" path="res://active_ragdoll/core/bowling_ball.gd" id="1_2cdm3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r3c1l"]
 albedo_color = Color(1, 0.0862745, 0.0784314, 1)
