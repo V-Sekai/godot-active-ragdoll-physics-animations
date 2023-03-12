@@ -1,6 +1,6 @@
 # Active Ragdoll
 
-A basic implementation of Active ragdolls in the vein of Unreals Physical animations.
+A basic implementation of Active ragdolls in the style of Unreals Physical animations.
 
 ## References
 
