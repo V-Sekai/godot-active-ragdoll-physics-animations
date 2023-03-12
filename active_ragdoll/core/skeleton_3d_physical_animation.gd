@@ -4,11 +4,11 @@ extends Skeleton3D
 
 @export var linear_spring_stiffness: float = 100.0
 @export var linear_spring_damping: float = 10.0
-@export var max_linear_force: float = 9999999.0
+@export var max_linear_force: float = 600.0
 
 @export var angular_spring_stiffness: float = 50.0
 @export var angular_spring_damping: float = 20.0
-@export var max_angular_force: float = 9999999.0
+@export var max_angular_force: float = 600.0
 
 var physics_bones: Array[Node]
 
