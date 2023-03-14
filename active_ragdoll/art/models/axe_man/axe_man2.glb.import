@@ -19819,6 +19819,11 @@ _subresources={
 "slice_99/start_frame": 0,
 "slices/amount": null
 }
+},
+"nodes": {
+"PATH:Armature/Skeleton3D": {
+"retarget/bone_map": Resource("res://active_ragdoll/art/archetype_humanoid_physical_bone_map.tres")
+}
 }
 }
 gltf/embedded_image_handling=1
