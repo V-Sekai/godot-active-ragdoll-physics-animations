@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://active_ragdoll/core/character_body_3d_simple_move.gd" id="1_wbtqt"]
 [ext_resource type="Script" path="res://active_ragdoll/core/skeleton_3d_physical_animation.gd" id="3_e20yr"]
-[ext_resource type="PackedScene" uid="uid://cqlp44mg01eov" path="res://active_ragdoll/art/models/archetype_humanoid/archetype_humanoid_physical.glb" id="3_mkubo"]
+[ext_resource type="PackedScene" uid="uid://cqlp44mg01eov" path="res://active_ragdoll/art/models/axe_man/axe_man2.glb" id="3_mkubo"]
 [ext_resource type="PackedScene" uid="uid://djs8fxnwvylfy" path="res://active_ragdoll/art/models/archetype_humanoid/archetype_humanoid_animations.glb" id="4_58klu"]
 [ext_resource type="PackedScene" uid="uid://cf3xe1k5f1auk" path="res://active_ragdoll/art/models/archetype_humanoid/archetype_humanoid_interpolated.glb" id="5_2es6j"]
 [ext_resource type="Script" path="res://active_ragdoll/core/skeleton_3d_interpolated_animation.gd" id="5_tlutm"]
